@@ -1,6 +1,12 @@
+# General
+.vs
+*.tmp
+build/
+
 # Godot 4+ specific ignores
 .godot/
 .nomedia
+*.uid
 
 # Godot-specific ignores
 .import/
