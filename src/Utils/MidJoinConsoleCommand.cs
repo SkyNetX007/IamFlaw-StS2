@@ -1,13 +1,9 @@
-using System;
-using System.Linq;
 using System.Text;
-using HarmonyLib;
 using MegaCrit.Sts2.Core.DevConsole;
 using MegaCrit.Sts2.Core.DevConsole.ConsoleCommands;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
-using MegaCrit.Sts2.Core.Runs;
 using IamFlaw.Models;
 using IamFlaw.Patches;
 
@@ -91,16 +87,16 @@ public class MidJoinConsoleCommand : AbstractConsoleCmd
     {
         try
         {
-            var runState = RunManager.Instance.DebugOnlyGetState();
-            if (runState == null)
+            var lobby = GetLoadRunLobby();
+            if (lobby == null)
             {
-                return new CmdResult(false, "No run in progress");
+                return new CmdResult(false, "No lobby in progress");
             }
 
-            var players = runState.Players;
+            var players = lobby.Run.Players;
             if (players == null || players.Count == 0)
             {
-                return new CmdResult(true, "No players in run");
+                return new CmdResult(true, "No players in save");
             }
 
             var sb = new StringBuilder();
@@ -109,8 +105,8 @@ public class MidJoinConsoleCommand : AbstractConsoleCmd
             for (int i = 0; i < players.Count; i++)
             {
                 var player = players[i];
-                var characterId = player.Character?.Id?.Entry ?? "Unknown";
-                sb.AppendLine($"  [{i}] NetId: {player.NetId}, Character: {characterId}");
+                var characterId = player.CharacterId?.Entry ?? "Unknown";
+                sb.AppendLine($"  [{i}] NetId: {player.NetId}, Character: {characterId}, HP: {player.CurrentHp}/{player.MaxHp}");
             }
 
             return new CmdResult(true, sb.ToString().TrimEnd());
@@ -173,21 +169,15 @@ public class MidJoinConsoleCommand : AbstractConsoleCmd
             copyIndex = newCopyIndex;
         }
 
-        var runState = RunManager.Instance.DebugOnlyGetState();
-        if (runState == null)
-        {
-            return new CmdResult(false, "No run in progress");
-        }
-
-        if (copyIndex < 0 || copyIndex >= runState.Players.Count)
-        {
-            return new CmdResult(false, $"Invalid copy index. Must be 0-{runState.Players.Count - 1}");
-        }
-
         var lobby = GetLoadRunLobby();
         if (lobby == null)
         {
-            return new CmdResult(false, "No LoadRunLobby found");
+            return new CmdResult(false, "No LoadRunLobby found (are you in lobby?)");
+        }
+
+        if (copyIndex < 0 || copyIndex >= lobby.Run.Players.Count)
+        {
+            return new CmdResult(false, $"Invalid copy index. Must be 0-{lobby.Run.Players.Count - 1}");
         }
 
         LoadSaveMidJoinPatch.ApproveAndCompleteJoin(lobby, netId, copyIndex);

@@ -74,23 +74,29 @@
   </Target>
 
   <!-- Export pck via Godot -->
-  <Target Name="GodotExportSkipped" BeforeTargets="GodotExport" Condition="'$(GodotPath)' == '' or !Exists('$(GodotPath)')">
-  	<Warning Text="GodotPath is not configured or invalid. Skipping .pck export."/>
+  <PropertyGroup>
+      <EnableGodotFeatures>false</EnableGodotFeatures>
+  </PropertyGroup>
+
+  <Target Name="GodotExportSkipped" BeforeTargets="GodotExport" Condition="'$(EnableGodotFeatures)' == 'true' and ('$(GodotPath)' == '' or !Exists('$(GodotPath)'))">
+      <Warning Text="GodotPath is not configured or invalid. Skipping .pck export."/>
   </Target>
 
-  <Target Name="GodotExport" AfterTargets="CopyDllToBuild" Condition="'$(GodotPath)' != '' and Exists('$(GodotPath)')">
+  <Target Name="GodotExport" AfterTargets="CopyDllToBuild" Condition="'$(EnableGodotFeatures)' == 'true' and '$(GodotPath)' != '' and Exists('$(GodotPath)')">
       <Message Text="Exporting Godot .pck" Importance="high"/>
       <Exec Command="&quot;$(GodotPath)&quot; --headless --export-pack &quot;PCKExport&quot; &quot;$(MSBuildProjectDirectory)/build/$(MSBuildProjectName).pck&quot;" ContinueOnError="WarnAndContinue"/>
   </Target>
 
   <!-- Copy to mods folder -->
-  <Target Name="CopyToModsFolder" AfterTargets="GodotExport">
+  <Target Name="CopyToModsFolder" AfterTargets="CopyDllToBuild">
       <Message Text="Copying to mods folder" Importance="high"/>
       <RemoveDir Directories="$(Sts2Path)/mods/$(MSBuildProjectName)/" Condition="Exists('$(Sts2Path)/mods/$(MSBuildProjectName)/')"/>
       <MakeDir Directories="$(Sts2Path)/mods/$(MSBuildProjectName)/"/>
       <Copy SourceFiles="$(MSBuildProjectDirectory)/build/$(MSBuildProjectName).dll" DestinationFolder="$(Sts2Path)/mods/$(MSBuildProjectName)/" Condition="Exists('$(MSBuildProjectDirectory)/build/$(MSBuildProjectName).dll')"/>
-      <Copy SourceFiles="$(MSBuildProjectDirectory)/build/$(MSBuildProjectName).pck" DestinationFolder="$(Sts2Path)/mods/$(MSBuildProjectName)/" Condition="Exists('$(MSBuildProjectDirectory)/build/$(MSBuildProjectName).pck')"/>
-      <Copy SourceFiles="$(MSBuildProjectDirectory)/mod_manifest.json" DestinationFolder="$(Sts2Path)/mods/$(MSBuildProjectName)/"/>
+      <!-- 
+        <Copy SourceFiles="$(MSBuildProjectDirectory)/build/$(MSBuildProjectName).pck" DestinationFolder="$(Sts2Path)/mods/$(MSBuildProjectName)/" Condition="Exists('$(MSBuildProjectDirectory)/build/$(MSBuildProjectName).pck')"/>
+      -->
+      <Copy SourceFiles="$(MSBuildProjectDirectory)/$(MSBuildProjectName).json" DestinationFolder="$(Sts2Path)/mods/$(MSBuildProjectName)/"/>
   </Target>
 
 </Project>

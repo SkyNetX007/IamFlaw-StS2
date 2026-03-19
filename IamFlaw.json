@@ -4,7 +4,7 @@
   "author": "SkyNetX007",
   "description": "A Slay the Spire 2 mod that allows non-original save players to join current save",
   "version": "v0.0.1",
-  "has_pck": true,
+  "has_pck": false,
   "has_dll": true,
   "dependencies": [],
   "affects_gameplay": true
